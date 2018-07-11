@@ -11,6 +11,24 @@ class VTMPost {
 		return $this->ID;
 	}
 
+	function setId($id){
+		$this->ID = $id;
+		return $this->getId();
+	}
+
+	static function clearAll($filter= []){
+		$filter = array_merge([
+			'post_type' => 'post',
+			'posts_per_page' => -1
+		], $filter);
+		$q = new WP_Query($filter);
+
+		while ($q->have_posts()){ $q->the_post();
+			wp_delete_post(get_the_ID(), true);
+			echo "Deleted ".get_the_ID()."\n";
+		}
+	}
+
 	function savePost( $data, $default = [] ) {
 		$data         = array_merge( $default, $data );
 		$metas        = $data['metas'];
@@ -40,6 +58,7 @@ class VTMPost {
 	}
 
 	function saveMeta( $postId, $metas ) {
+		if (!is_array($metas)) return;
 		foreach ( $metas as $key => $meta ) {
 			$meta = array_merge( [
 				'type' => 'default'
