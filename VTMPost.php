@@ -6,6 +6,20 @@ class VTMPost {
 		$this->ID = false;
 	}
 
+	function test($jsonFile){
+		if (is_file($jsonFile)){
+			$data = json_decode(file_get_contents($jsonFile), true);
+			$cat = $data['terms']['brand'];
+			$names = $cat[0];
+			$id  = basename($jsonFile);
+			$id = str_replace(".json", "", $id);
+			$url = $data['url'];
+			if (count(explode('|', $names)) < 3){
+				echo "$names -  $id - $url\n";
+			}
+		}
+	}
+
 
 	function getId() {
 		return $this->ID;
@@ -76,20 +90,38 @@ class VTMPost {
 		}
 	}
 
+	function createTerms($terms, $taxonomy, $parent = 0){
+		$tax = get_taxonomy( $taxonomy );
+		if (is_string($terms)){
+			$terms = explode("|", $terms);
+		}
+		if ( $tax->hierarchical ) {
+			foreach ($terms as $term){
+				$termExists = term_exists( $term, $taxonomy, $parent );
+				if (!$termExists){
+					$parent = wp_insert_term($term, $taxonomy, [
+						'parent' => $parent
+					]);
+					if (!is_wp_error($parent))
+						$parent = $parent['term_id'];
+				}
+				else{
+					$parent = $termExists['term_id'];
+				}
+			}
+			return $parent;
+		}
+		return false;
+	}
+
 	function saveTerms( $terms, $taxonomy ) {
 		$tax = get_taxonomy( $taxonomy );
 		if ( $tax->hierarchical ) {
 			$ids = [];
 			foreach ( $terms as $term ) {
-				$termExists = term_exists( $term, $taxonomy );
-				if ( $termExists !== 0 && $termExists !== null ) {
-					array_push( $ids, $termExists['term_id'] );
-				} else {
-					$insertTerm = wp_insert_term( $term, $taxonomy );
-					if ( ! is_wp_error( $insertTerm ) ) {
-						array_push( $ids, $insertTerm['term_id'] );
-					}
-				}
+				//Check if there is parent child relationship
+				$vertical_term = $this->createTerms($term, $taxonomy);
+				array_push($ids, $vertical_term);
 			}
 			$terms = $ids;
 		}

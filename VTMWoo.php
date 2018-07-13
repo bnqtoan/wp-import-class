@@ -144,6 +144,23 @@ class VTMWoo extends VTMPost {
 		$this->insert_product_variations($variations);
 
 	}
+	
+	function saveProductJson($path){
+		if (is_file($path)){
+			$data = json_decode(file_get_contents($path), true);
+			if ($data['url']){
+				$data['metas']['_old_url'] = [
+					'value' => $data['url']
+				];
+			}
+			$this->saveProduct($data, [
+				'post_status' => 'publish'
+			]);
+		}
+		else{
+			echo "$path is not found";
+		}
+	}
 
 	function saveProduct( $data, $default = [] ) {
 		$default = array_merge( $default, [
@@ -152,13 +169,17 @@ class VTMWoo extends VTMPost {
 			'price'      => 0,
 			'sale_price' => false,
 		] );
+
+		if (!is_array($data)) $data = [];
 		$data    = array_merge( $default, $data );
 		$this->savePost( $data );
 		if ( $this->getId() ) {
 
 			//Check if variation product
-			if ( isset( $data['variations'] ) ) {
+			if ($data['variations']) {
 				wp_set_object_terms( $this->getId(), 'variable', 'product_type' );
+				//Save Variations
+				$this->saveVariations( $data['variations'] );
 			}
 
 			// Set Price
@@ -170,9 +191,6 @@ class VTMWoo extends VTMPost {
 
 			// Save Gallery
 			$this->saveGallery( $data['gallery'] );
-
-			//Save Variations
-			$this->saveVariations( $data['variations'] );
 		}
 
 		return $this->getId();
