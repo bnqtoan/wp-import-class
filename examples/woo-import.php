@@ -20,26 +20,26 @@ echo $woo->saveProduct( [
 		'product_cat' => [ "Tooth brush" ],
 		'brand' => [ "Sensodyne" ],
 	],
-	'variations'    => [
-		[
-			'attributes' => [
-				'mau-sac' => 'Yellow',
-				'size' => 'XL',
-			],
-			'regular_price' => $price + 5000
-		],
-		[
-			'attributes' => [
-				'mau-sac' => 'Blue'
-			],
-			'regular_price' => $price + 5000,
-			'sale_price' => $sale_price + 1000
-		],
-		[
-			'attributes' => [
-				'mau-sac' => 'Red'
-			],
-			'regular_price' => $price
-		]
-	]
+//	'variations'    => [
+//		[
+//			'attributes' => [
+//				'mau-sac' => 'Yellow',
+//				'size' => 'XL',
+//			],
+//			'regular_price' => $price + 5000
+//		],
+//		[
+//			'attributes' => [
+//				'mau-sac' => 'Blue'
+//			],
+//			'regular_price' => $price + 5000,
+//			'sale_price' => $sale_price + 1000
+//		],
+//		[
+//			'attributes' => [
+//				'mau-sac' => 'Red'
+//			],
+//			'regular_price' => $price
+//		]
+//	]
 ] );

@@ -6,15 +6,15 @@ class VTMPost {
 		$this->ID = false;
 	}
 
-	function test($jsonFile){
-		if (is_file($jsonFile)){
-			$data = json_decode(file_get_contents($jsonFile), true);
-			$cat = $data['terms']['brand'];
+	function test( $jsonFile ) {
+		if ( is_file( $jsonFile ) ) {
+			$data  = json_decode( file_get_contents( $jsonFile ), true );
+			$cat   = $data['terms']['brand'];
 			$names = $cat[0];
-			$id  = basename($jsonFile);
-			$id = str_replace(".json", "", $id);
-			$url = $data['url'];
-			if (count(explode('|', $names)) < 3){
+			$id    = basename( $jsonFile );
+			$id    = str_replace( ".json", "", $id );
+			$url   = $data['url'];
+			if ( count( explode( '|', $names ) ) < 3 ) {
 				echo "$names -  $id - $url\n";
 			}
 		}
@@ -25,21 +25,23 @@ class VTMPost {
 		return $this->ID;
 	}
 
-	function setId($id){
+	function setId( $id ) {
 		$this->ID = $id;
+
 		return $this->getId();
 	}
 
-	static function clearAll($filter= []){
-		$filter = array_merge([
-			'post_type' => 'post',
-			'posts_per_page' => -1
-		], $filter);
-		$q = new WP_Query($filter);
+	static function clearAll( $filter = [] ) {
+		$filter = array_merge( [
+			'post_type'      => 'post',
+			'posts_per_page' => - 1
+		], $filter );
+		$q      = new WP_Query( $filter );
 
-		while ($q->have_posts()){ $q->the_post();
-			wp_delete_post(get_the_ID(), true);
-			echo "Deleted ".get_the_ID()."\n";
+		while ( $q->have_posts() ) {
+			$q->the_post();
+			wp_delete_post( get_the_ID(), true );
+			echo "Deleted " . get_the_ID() . "\n";
 		}
 	}
 
@@ -72,7 +74,9 @@ class VTMPost {
 	}
 
 	function saveMeta( $postId, $metas ) {
-		if (!is_array($metas)) return;
+		if ( ! is_array( $metas ) ) {
+			return;
+		}
 		foreach ( $metas as $key => $meta ) {
 			$meta = array_merge( [
 				'type' => 'default'
@@ -83,6 +87,17 @@ class VTMPost {
 						update_field( $key, $meta['value'], $postId );
 					}
 					break;
+				case 'seo':
+					if ( is_file( ABSPATH . 'wp-content/plugins/wordpress-seo/wp-seo.php' ) ) {
+						$keyMaps = [
+							'title' => 'title',
+							'description' => 'metadesc',
+							'keywords' => 'metakeywords'
+						];
+						if (isset($keyMaps[$key])) $key = $keyMaps[$key];
+						update_post_meta($postId, "_yoast_wpseo_$key", $meta['value']);
+					}
+					break;
 				default:
 					update_post_meta( $postId, $key, $meta['value'] );
 					break;
@@ -90,27 +105,29 @@ class VTMPost {
 		}
 	}
 
-	function createTerms($terms, $taxonomy, $parent = 0){
+	function createTerms( $terms, $taxonomy, $parent = 0 ) {
 		$tax = get_taxonomy( $taxonomy );
-		if (is_string($terms)){
-			$terms = explode("|", $terms);
+		if ( is_string( $terms ) ) {
+			$terms = explode( "|", $terms );
 		}
 		if ( $tax->hierarchical ) {
-			foreach ($terms as $term){
+			foreach ( $terms as $term ) {
 				$termExists = term_exists( $term, $taxonomy, $parent );
-				if (!$termExists){
-					$parent = wp_insert_term($term, $taxonomy, [
+				if ( ! $termExists ) {
+					$parent = wp_insert_term( $term, $taxonomy, [
 						'parent' => $parent
-					]);
-					if (!is_wp_error($parent))
+					] );
+					if ( ! is_wp_error( $parent ) ) {
 						$parent = $parent['term_id'];
-				}
-				else{
+					}
+				} else {
 					$parent = $termExists['term_id'];
 				}
 			}
+
 			return $parent;
 		}
+
 		return false;
 	}
 
@@ -120,8 +137,8 @@ class VTMPost {
 			$ids = [];
 			foreach ( $terms as $term ) {
 				//Check if there is parent child relationship
-				$vertical_term = $this->createTerms($term, $taxonomy);
-				array_push($ids, $vertical_term);
+				$vertical_term = $this->createTerms( $term, $taxonomy );
+				array_push( $ids, $vertical_term );
 			}
 			$terms = $ids;
 		}

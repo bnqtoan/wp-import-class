@@ -102,8 +102,9 @@ class VTMWoo extends VTMPost {
 				'regular_price' => false,
 			], $variation);
 			$variation_post = array( // Setup the post data for the variation
-				'post_title'  => 'Variation #'.$index.' of '.count($variations).' for product#'. $post_id,
-				'post_name'   => 'product-'.$post_id.'-variation-'.$index,
+				//'post_title'  => 'Variation #'.$index.' of '.count($variations).' for product#'. $post_id,
+				'post_title'  => get_the_title($post_id).' '.$index,
+				//'post_name'   => 'product-'.$post_id.'-variation-'.$index,
 				'post_status' => 'publish',
 				'post_parent' => $post_id,
 				'post_type'   => 'product_variation',
@@ -115,14 +116,13 @@ class VTMWoo extends VTMPost {
 			foreach ($variation['attributes'] as $attribute => $value) // Loop through the variations attributes
 			{
 				$attribute_term = get_term_by('name', $value, 'pa_'.$attribute); // We need to insert the slug not the name into the variation post meta
-
 				update_post_meta($variation_post_id, 'attribute_pa_'.$attribute, $attribute_term->slug);
-				// Again without variables: update_post_meta(25, 'attribute_pa_size', 'small')
 			}
 
 			update_post_meta($variation_post_id, '_price', $variation['regular_price']);
 			update_post_meta($variation_post_id, '_regular_price', $variation['regular_price']);
 			update_post_meta($variation_post_id, '_sale_price', $variation['sale_price']);
+			wc_get_product($variation_post_id)->save();
 		}
 	}
 
@@ -166,8 +166,9 @@ class VTMWoo extends VTMPost {
 		$default = array_merge( $default, [
 			'post_type'  => 'product',
 			'gallery'    => [],
-			'price'      => 0,
+			'price'      => false,
 			'sale_price' => false,
+			'post_status' => 'publish'
 		] );
 
 		if (!is_array($data)) $data = [];
@@ -183,6 +184,7 @@ class VTMWoo extends VTMPost {
 			}
 
 			// Set Price
+			update_post_meta($this->getId(), '_price', $data['regular_price']);
 			$this->getProduct()->set_regular_price( $data['regular_price'] );
 			if ( $data['sale_price'] ) {
 				$this->getProduct()->set_sale_price( $data['sale_price'] );

@@ -117,6 +117,11 @@ class VTMCrawler {
 		return false;
 	}
 
+	/**
+	 * @param $url string
+	 *
+	 * @return array|bool
+	 */
 	static function downloadImageToWP( $url ) {
 		$file = self::downloadFile( $url );
 		return self::uploadFile( $file );
